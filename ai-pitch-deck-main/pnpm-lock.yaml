@@ -29,9 +29,6 @@ importers:
       '@imagekit/nodejs':
         specifier: ^7.11.0
         version: 7.11.0
-      '@openai/agents':
-        specifier: ^0.17.0
-        version: 0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
       '@prisma/adapter-pg':
         specifier: ^7.10.0
         version: 7.10.0
@@ -827,14 +824,6 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@modelcontextprotocol/client@2.0.0':
-    resolution: {integrity: sha512-8f1OghQ2rjzIOfqgUCP+8GiUWqRs89njoWLNqAe8kWmDePv3s1fZXseej+QXemssEuuOvLLmLO/kqM3IQHtISw==}
-    engines: {node: '>=20'}
-
-  '@modelcontextprotocol/core@2.0.0':
-    resolution: {integrity: sha512-pJCEwGG7Lfr/+PQp9ZTwKXNeO5wzbfKL7H3MYpCorM4oFBoQrdjnBgEoqG+RjhsvS1FKrDbKux+M1HhlnGWqcA==}
-    engines: {node: '>=20'}
-
   '@modelcontextprotocol/sdk@1.30.0':
     resolution: {integrity: sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==}
     engines: {node: '>=18'}
@@ -925,29 +914,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@openai/agents-core@0.17.0':
-    resolution: {integrity: sha512-lyoF860313ypeKSPRsdmyNK1ypF8/ocShN2EwCcKUpF4VvRWa5AUVKL6VXO/keQMwNPZw5SACAf1siU9uMvUNg==}
-    peerDependencies:
-      zod: ^4.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
-
-  '@openai/agents-openai@0.17.0':
-    resolution: {integrity: sha512-pMqXK7YtNI3U9KLAZIt+WzB9AReOWt/kiY8nhc9eXWcIZIpkmrzFd6dQgBpGLKWPfvEfgRCDeIVfHpWoXr7hEg==}
-    peerDependencies:
-      zod: ^4.0.0
-
-  '@openai/agents-realtime@0.17.0':
-    resolution: {integrity: sha512-spHgDIaWQIOJjwowjBTo0X9Jn3+CGX9fWgsyRUilsQ8SsnNrAre2km6sr8HwFnRiyQC0XpmTccieyfuXmzMfXg==}
-    peerDependencies:
-      zod: ^4.0.0
-
-  '@openai/agents@0.17.0':
-    resolution: {integrity: sha512-yzJ3tfHLO/6um9wsZ5IzEAQDaY7VcDBMxOPq7IgBaJkEPHrGX0vIXWGL0aqyreikHW4OpVmWwCaBBIOxxILXlA==}
-    peerDependencies:
-      zod: ^4.0.0
 
   '@opentelemetry/api-logs@0.203.0':
     resolution: {integrity: sha512-9B9RU0H7Ya1Dx/Rkyc4stuBZSGVQF27WigitInx2QQoj6KUpEFYPKoWjdFTunJYxmXmh17HeBvbMa1EhGyPmqQ==}
@@ -2132,9 +2098,6 @@ packages:
 
   '@types/validate-npm-package-name@4.0.2':
     resolution: {integrity: sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw==}
-
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript-eslint/eslint-plugin@8.69.0':
     resolution: {integrity: sha512-t5jQTKPIgVW1PE6dR6H6Qz5gm8zjMlX5/2gRaOGd9eO6V7J+tQc6iWKukEe7dY8u9HyYasQ0yfF0/FSSTEO2gA==}
@@ -6215,22 +6178,6 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@modelcontextprotocol/client@2.0.0':
-    dependencies:
-      '@modelcontextprotocol/core': 2.0.0
-      cross-spawn: 7.0.6
-      eventsource: 3.0.7
-      eventsource-parser: 3.1.1
-      jose: 6.2.12
-      pkce-challenge: 5.0.1
-      zod: 4.5.4
-    optional: true
-
-  '@modelcontextprotocol/core@2.0.0':
-    dependencies:
-      zod: 4.5.4
-    optional: true
-
   '@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@3.25.76)':
     dependencies:
       '@hono/node-server': 2.1.1(hono@4.13.7)
@@ -6306,70 +6253,6 @@ snapshots:
       fastq: 1.20.3
 
   '@nolyfill/is-core-module@1.0.39': {}
-
-  '@openai/agents-core@0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)':
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      debug: 4.4.3(supports-color@7.2.0)
-      openai: 7.10.0(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-    optionalDependencies:
-      '@modelcontextprotocol/client': 2.0.0
-      zod: 4.5.4
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-provider-node'
-      - '@smithy/hash-node'
-      - '@smithy/signature-v4'
-      - supports-color
-      - undici
-      - ws
-
-  '@openai/agents-openai@0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)':
-    dependencies:
-      '@openai/agents-core': 0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      debug: 4.4.3(supports-color@7.2.0)
-      openai: 7.10.0(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      zod: 4.5.4
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-provider-node'
-      - '@smithy/hash-node'
-      - '@smithy/signature-v4'
-      - supports-color
-      - undici
-      - ws
-
-  '@openai/agents-realtime@0.17.0(supports-color@7.2.0)(undici@7.29.1)(zod@4.5.4)':
-    dependencies:
-      '@openai/agents-core': 0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      '@types/ws': 8.18.1
-      debug: 4.4.3(supports-color@7.2.0)
-      ws: 8.21.3
-      zod: 4.5.4
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-provider-node'
-      - '@smithy/hash-node'
-      - '@smithy/signature-v4'
-      - bufferutil
-      - supports-color
-      - undici
-      - utf-8-validate
-
-  '@openai/agents@0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)':
-    dependencies:
-      '@openai/agents-core': 0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      '@openai/agents-openai': 0.17.0(supports-color@7.2.0)(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      '@openai/agents-realtime': 0.17.0(supports-color@7.2.0)(undici@7.29.1)(zod@4.5.4)
-      debug: 4.4.3(supports-color@7.2.0)
-      openai: 7.10.0(undici@7.29.1)(ws@8.21.3)(zod@4.5.4)
-      zod: 4.5.4
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-provider-node'
-      - '@smithy/hash-node'
-      - '@smithy/signature-v4'
-      - bufferutil
-      - supports-color
-      - undici
-      - utf-8-validate
-      - ws
 
   '@opentelemetry/api-logs@0.203.0':
     dependencies:
@@ -7675,10 +7558,6 @@ snapshots:
   '@types/use-sync-external-store@0.0.6': {}
 
   '@types/validate-npm-package-name@4.0.2': {}
-
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 20.19.43
 
   '@typescript-eslint/eslint-plugin@8.69.0(@typescript-eslint/parser@8.69.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)':
     dependencies:
@@ -11224,7 +11103,8 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  ws@8.21.3: {}
+  ws@8.21.3:
+    optional: true
 
   wsl-utils@1.0.0:
     dependencies:
