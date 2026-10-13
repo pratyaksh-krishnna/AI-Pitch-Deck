@@ -14,7 +14,8 @@
     "test:agent": "pnpm dlx tsx scripts/test-agent.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:direct": "node scripts/prisma-direct.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",

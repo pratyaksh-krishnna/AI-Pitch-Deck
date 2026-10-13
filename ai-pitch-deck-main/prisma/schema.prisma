@@ -19,27 +19,72 @@ enum DeckStatus {
   FAILED
 }
 
+enum SlideStatus {
+  PENDING
+  BUILDING
+  SCORING
+  REVISING
+  PASSED
+  FLAGGED
+  FAILED
+}
+
 model Deck {
-  id           String     @id @default(cuid())
-  idea         String     @db.Text
+  id           String       @id @default(cuid())
+  idea         String       @db.Text
   title        String?
-  status       DeckStatus @default(PENDING)
+  status       DeckStatus   @default(PENDING)
   errorMessage String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  theme        Json?
+  deckHtml     String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   slides       Slide[]
+  usage        ModelUsage[]
 }
 
 model Slide {
-  id          String   @id @default(cuid())
-  deckId      String
-  deck        Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  order       Int
-  title       String
-  content     String   @db.Text
-  imagePrompt String   @db.Text
-  imageUrl    String?
-  createdAt   DateTime @default(now())
+  id           String         @id @default(cuid())
+  deckId       String
+  deck         Deck           @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  order        Int
+  sectionId    String
+  keyMessage   String         @db.Text
+  status       SlideStatus    @default(PENDING)
+  round        Int            @default(0)
+  errorMessage String?
+  versions     SlideVersion[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([deckId, order])
+}
+
+model SlideVersion {
+  id         String   @id @default(cuid())
+  slideId    String
+  slide      Slide    @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  round      Int
+  draft      Json
+  imageUrl   String?
+  score      Int?
+  review     Json?
+  lintErrors Json?
+  createdAt  DateTime @default(now())
+
+  @@unique([slideId, round])
+}
+
+model ModelUsage {
+  id           String   @id @default(cuid())
+  deckId       String
+  deck         Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  agent        String
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  imageCount   Int      @default(0)
+  createdAt    DateTime @default(now())
 
   @@index([deckId])
 }
