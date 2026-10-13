@@ -4,7 +4,8 @@ import type { SlideDraft } from "@/lib/schemas/slide-draft";
 export const SLIDE_SECONDS = 6;
 /** The slideshow rests at a scene's midpoint; screenshots use the same frame. */
 export const REST_OFFSET_SECONDS = 3;
-const GSAP_SRC = "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js";
+/** The only script the assembled document loads; the screenshot allowlist depends on it. */
+export const GSAP_SRC = "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js";
 
 export type SceneInput = {
   sceneId: string;
