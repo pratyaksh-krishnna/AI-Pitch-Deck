@@ -1,16 +1,9 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 import { prisma } from "@/lib/db";
 import { DeckStatus } from "@/lib/generated/prisma/client";
 import { inngest } from "@/lib/inngest/client";
-
-const createDeckSchema = z.object({
-  idea: z
-    .string()
-    .trim()
-    .min(20, "Project idea must be at least 20 characters."),
-});
+import { CreateDeckSchema } from "@/lib/schemas/create-deck";
 
 /** List all decks, newest first. */
 export async function GET() {
@@ -45,7 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = createDeckSchema.safeParse(body);
+  const parsed = CreateDeckSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(

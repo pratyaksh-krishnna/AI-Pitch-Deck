@@ -1,12 +1,19 @@
 export type DeckStatus = "PENDING" | "GENERATING" | "COMPLETE" | "FAILED";
 
-export type Slide = {
+export type SlideStatus = "PENDING" | "BUILDING" | "SCORING" | "REVISING" | "PASSED" | "FLAGGED" | "FAILED";
+
+export type SlideHistoryEntry = { round: number; score: number | null; feedback: string[] };
+
+export type SlideSummary = {
   id: string;
   order: number;
-  title: string;
-  content: string;
-  imagePrompt: string;
-  imageUrl: string | null;
+  sectionId: string;
+  sectionLabel: string;
+  status: SlideStatus;
+  round: number;
+  score: number | null;
+  headline: string | null;
+  history: SlideHistoryEntry[];
 };
 
 export type DeckDetail = {
@@ -15,7 +22,10 @@ export type DeckDetail = {
   title: string | null;
   status: DeckStatus;
   errorMessage: string | null;
-  slides: Slide[];
+  slides: SlideSummary[];
+  deckHtml: string | null;
+  /** One-slide documents (best version of each Slide) for DeckPlayerFallback; empty until the Deck is COMPLETE. */
+  slideHtml: string[];
   createdAt: string;
   updatedAt: string;
 };
