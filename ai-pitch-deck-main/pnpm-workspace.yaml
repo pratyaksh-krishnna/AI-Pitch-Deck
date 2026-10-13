@@ -1,7 +1,14 @@
 allowBuilds:
   '@prisma/engines': true
+  esbuild: true
   inngest-cli: true
   prisma: true
   protobufjs: true
   sharp: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@hyperframes/core@0.8.154'
+  - '@hyperframes/lint@0.8.154'
+  - '@hyperframes/parsers@0.8.154'
+  - '@hyperframes/player@0.8.154'
+  - '@hyperframes/studio-server@0.8.154'

@@ -11,12 +11,18 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "inngest:dev": "npx inngest-cli@latest dev",
-    "test:agent": "pnpm dlx tsx scripts/test-agent.ts"
+    "test:agent": "pnpm dlx tsx scripts/test-agent.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
     "@base-ui/react": "^1.8.0",
     "@hugeicons/core-free-icons": "^4.3.0",
     "@hugeicons/react": "^1.1.10",
+    "@hyperframes/lint": "0.8.154",
+    "@hyperframes/player": "0.8.154",
     "@imagekit/nodejs": "^7.11.0",
     "@openai/agents": "^0.17.0",
     "@prisma/adapter-pg": "^7.10.0",
@@ -33,6 +39,7 @@
     "next": "16.3.4",
     "openai": "^7.10.0",
     "pg": "^8.23.0",
+    "playwright": "^1.64.0",
     "react": "19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.8",
@@ -53,7 +60,8 @@
     "inngest-cli": "^1.44.0",
     "prisma": "7.10.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.4"
   },
   "packageManager": "pnpm@11.24.0"
 }
