@@ -1,12 +1,14 @@
 # AI Pitch Deck
 
-Generate startup pitch decks from a project idea — powered by **OpenAI Agents** (guardrails + structured output), **Inngest** (background jobs), **ImageKit** (image CDN), and **Prisma** (Postgres).
+Generate investor pitch decks from a project idea — a Claude Slide Builder designs animated HyperFrames slides, an Image Agent illustrates them, and a Feedback Agent scores every slide until it reaches 8/10.
+
+Domain terms are defined in [CONTEXT.md](./CONTEXT.md); the design is in [docs/superpowers/specs/2026-10-14-multi-agent-slides-design.md](./docs/superpowers/specs/2026-10-14-multi-agent-slides-design.md).
 
 ## Quick start
 
 ```bash
 pnpm install
-cp .env.example .env   # fill in your keys
+cp .env.example .env   # fill in your keys, including ANTHROPIC_API_KEY (Slide Builder)
 ./node_modules/.bin/prisma migrate dev
 ./node_modules/.bin/prisma generate
 
@@ -43,7 +45,7 @@ Step-by-step chapters (agenda, packages, file paths, how each part connects):
 | `pnpm dev` | Next.js dev server |
 | `pnpm inngest:dev` | Inngest dev UI (localhost:8288) |
 | `pnpm db:studio` | Prisma Studio |
-| `pnpm test:agent` | Test AI agent in isolation |
+| `pnpm test` | Run the Vitest suite |
 
 ## Dev shortcut
 

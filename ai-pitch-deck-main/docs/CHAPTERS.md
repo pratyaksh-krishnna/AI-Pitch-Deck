@@ -6,6 +6,19 @@ A step-by-step guide to building this app from scratch. Each chapter builds on t
 
 ---
 
+## Multi-agent pipeline (current version)
+
+The chapters below build the original single-agent version. The app now runs a multi-agent pipeline instead:
+
+- **Orchestrator** (`lib/inngest/functions/generate-deck.ts`) — plans the Deck with Claude, then runs one child workflow per Slide in parallel (`generate-slide.ts`) and assembles the final Deck.
+- **Slide Builder** (`lib/agents/slide-builder/`, Claude Opus 5.5) — writes each Slide's text and HyperFrames Slide Composition, and revises it from Feedback.
+- **Image Agent** (`lib/agents/image-agent.ts`, `gpt-image-2`) — illustrates each Slide at the aspect its layout needs.
+- **Feedback Agent** (`lib/agents/feedback-agent.ts`, `gpt-6-luna`) — scores a screenshot of the Slide on the Rubric; a Slide is revised until its Slide Score reaches 8/10, up to 3 Revision Rounds.
+
+Design and decisions: [docs/superpowers/specs/2026-10-14-multi-agent-slides-design.md](./superpowers/specs/2026-10-14-multi-agent-slides-design.md). Terms: [CONTEXT.md](../CONTEXT.md).
+
+---
+
 ## Architecture at a Glance
 
 ```
