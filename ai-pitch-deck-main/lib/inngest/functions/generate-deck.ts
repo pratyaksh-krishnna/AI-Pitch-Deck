@@ -1,123 +1,96 @@
 import { NonRetriableError } from "inngest";
 
-import {
-  generatePitchDeck,
-  PitchDeckGenerationError,
-} from "@/lib/agents/generate-pitch-deck";
+import { AgentRefusalError } from "@/lib/agents/agent-errors";
+import { planDeck } from "@/lib/agents/slide-builder";
+import { sectionById, sceneIdFor, type SectionId } from "@/lib/deck/sections";
+import { deckFailureMessage } from "@/lib/deck/slide-context";
+import { recordUsage } from "@/lib/deck/usage";
 import { prisma } from "@/lib/db";
 import { DeckStatus } from "@/lib/generated/prisma/client";
-import { uploadSlideImage } from "@/lib/imagekit";
+import { assembleDeckHtml } from "@/lib/hyperframes/assemble-deck";
 import { inngest } from "@/lib/inngest/client";
-import { generateSlideImage } from "@/lib/openai";
+import { pickBestVersion } from "@/lib/quality/rules";
+import { DeckThemeSchema } from "@/lib/schemas/deck-theme";
+import { SlideDraftSchema } from "@/lib/schemas/slide-draft";
+
+import { generateSlide } from "./generate-slide";
 
 /**
- * Background job: turn a project idea into a full pitch deck with images.
- *
- * Triggered by the "deck/generate" event (sent from the API in Phase 6).
- * Each step.run() is a separate retryable step visible in the Inngest dev UI.
+ * Orchestrator (ADR 0002): plan → one child workflow per Slide, in parallel → assemble.
+ * Every step is retryable and visible in the Inngest dev UI.
  */
 export const generateDeck = inngest.createFunction(
-  {
-    id: "generate-deck",
-    triggers: [{ event: "deck/generate" }],
-  },
+  { id: "generate-deck", triggers: [{ event: "deck/generate" }] },
   async ({ event, step }) => {
     const { deckId } = event.data;
 
-    // Step 1 — load the deck from the database
     const deck = await step.run("load-deck", async () => {
       const record = await prisma.deck.findUnique({ where: { id: deckId } });
-
-      if (!record) {
-        throw new NonRetriableError(`Deck not found: ${deckId}`);
-      }
-
+      if (!record) throw new NonRetriableError(`Deck not found: ${deckId}`);
       return record;
     });
 
+    const fail = (message: string) =>
+      step.run("mark-failed", async () => {
+        await prisma.deck.update({ where: { id: deckId }, data: { status: DeckStatus.FAILED, errorMessage: message } });
+      });
+
+    await step.run("mark-generating", async () => {
+      await prisma.deck.update({ where: { id: deckId }, data: { status: DeckStatus.GENERATING, errorMessage: null } });
+    });
+
+    let slideIds: string[];
     try {
-      // Step 2 — tell the UI we are generating
-      await step.run("mark-generating", async () => {
-        await prisma.deck.update({
-          where: { id: deckId },
-          data: { status: DeckStatus.GENERATING },
+      slideIds = await step.run("plan-deck", async () => {
+        const plan = await planDeck(deck.idea).catch((error) => {
+          if (error instanceof AgentRefusalError) throw new NonRetriableError(error.message);
+          throw error;
+        });
+        await recordUsage(deckId, "slide-builder", plan.usage);
+        return prisma.$transaction(async (tx) => {
+          await tx.deck.update({ where: { id: deckId }, data: { title: plan.output.deckTitle, theme: plan.output.theme } });
+          await tx.slide.deleteMany({ where: { deckId } });
+          const rows = await Promise.all(plan.output.outline.map((item, i) =>
+            tx.slide.create({ data: { deckId, order: i + 1, sectionId: item.sectionId, keyMessage: item.keyMessage } })));
+          return rows.map((r) => r.id);
         });
       });
-
-      // Step 3 — run the AI agent (guardrails + structured output)
-      const pitchDeck = await step.run("run-agent", async () => {
-        return generatePitchDeck(deck.idea);
-      });
-
-      // Step 4 — save the generated title
-      await step.run("save-title", async () => {
-        await prisma.deck.update({
-          where: { id: deckId },
-          data: { title: pitchDeck.deckTitle },
-        });
-      });
-
-      // Step 5 — for each slide: generate image → upload to ImageKit → save to DB
-      for (let index = 0; index < pitchDeck.slides.length; index++) {
-        const slide = pitchDeck.slides[index];
-        const order = index + 1;
-
-        const imageUrl = await step.run(`image-${order}`, async () => {
-          const imageBuffer = await generateSlideImage(slide.imagePrompt);
-          const fileName = `deck-${deckId}-slide-${order}.png`;
-          return uploadSlideImage(imageBuffer, fileName);
-        });
-
-        await step.run(`save-slide-${order}`, async () => {
-          await prisma.slide.create({
-            data: {
-              deckId,
-              order,
-              title: slide.title,
-              content: slide.content,
-              imagePrompt: slide.imagePrompt,
-              imageUrl,
-            },
-          });
-        });
-      }
-
-      // Step 6 — done!
-      await step.run("mark-complete", async () => {
-        await prisma.deck.update({
-          where: { id: deckId },
-          data: { status: DeckStatus.COMPLETE },
-        });
-      });
-
-      return { deckId, slideCount: pitchDeck.slides.length };
     } catch (error) {
-      const message =
-        error instanceof PitchDeckGenerationError
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : "Unknown error during deck generation";
-
-      await step.run("mark-failed", async () => {
-        await prisma.deck.update({
-          where: { id: deckId },
-          data: {
-            status: DeckStatus.FAILED,
-            errorMessage: message,
-          },
-        });
-      });
-
-      // Don't retry guardrail failures or missing decks — they won't succeed on retry
-      if (
-        error instanceof PitchDeckGenerationError ||
-        error instanceof NonRetriableError
-      ) {
-        throw new NonRetriableError(message);
-      }
-
+      await fail(error instanceof Error ? error.message : "Could not plan the deck");
       throw error;
     }
+
+    const results = await Promise.allSettled(
+      slideIds.map((slideId, i) => step.invoke(`slide-${i + 1}`, { function: generateSlide, data: { slideId } })),
+    );
+    const failure = deckFailureMessage(results);
+    if (failure) {
+      await fail(failure);
+      throw new NonRetriableError(failure);
+    }
+
+    await step.run("assemble-deck", async () => {
+      const record = await prisma.deck.findUniqueOrThrow({
+        where: { id: deckId },
+        include: { slides: { orderBy: { order: "asc" }, include: { versions: true } } },
+      });
+      const theme = DeckThemeSchema.parse(record.theme);
+      const scenes = record.slides.map((slide) => {
+        const best = pickBestVersion(slide.versions);
+        if (!best) throw new Error(`Slide ${slide.order} has no versions`);
+        return {
+          sceneId: sceneIdFor(slide.order, slide.sectionId as SectionId),
+          label: sectionById(slide.sectionId as SectionId).label,
+          draft: SlideDraftSchema.parse(best.draft),
+          imageUrl: best.imageUrl,
+        };
+      });
+      await prisma.deck.update({
+        where: { id: deckId },
+        data: { deckHtml: assembleDeckHtml(theme, scenes), status: DeckStatus.COMPLETE },
+      });
+    });
+
+    return { deckId, slides: slideIds.length };
   },
 );

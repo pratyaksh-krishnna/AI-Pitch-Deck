@@ -6,6 +6,11 @@ export type InngestEvents = {
       deckId: string;
     };
   };
+  "slide/generate": {
+    data: {
+      slideId: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({
