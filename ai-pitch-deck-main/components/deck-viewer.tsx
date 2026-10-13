@@ -2,17 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { DeckPlayerFallback } from "@/components/deck-player";
 import { DeckStatusBadge } from "@/components/deck-status-badge";
+import { SlideProgress } from "@/components/slide-progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import type { DeckDetail } from "@/lib/types/deck";
 
@@ -25,8 +18,6 @@ function isGenerating(status: DeckDetail["status"]) {
 export function DeckViewer({ deckId }: { deckId: string }) {
   const [deck, setDeck] = useState<DeckDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   const fetchDeck = useCallback(async () => {
     const response = await fetch(`/api/decks/${deckId}`);
@@ -59,24 +50,6 @@ export function DeckViewer({ deckId }: { deckId: string }) {
 
     return () => clearInterval(interval);
   }, [deck, fetchDeck]);
-
-  // Track carousel slide number
-  useEffect(() => {
-    if (!carouselApi) {
-      return;
-    }
-
-    const onSelect = () => {
-      setCurrentSlide(carouselApi.selectedScrollSnap());
-    };
-
-    onSelect();
-    carouselApi.on("select", onSelect);
-
-    return () => {
-      carouselApi.off("select", onSelect);
-    };
-  }, [carouselApi]);
 
   if (loadError) {
     return (
@@ -111,26 +84,9 @@ export function DeckViewer({ deckId }: { deckId: string }) {
       </div>
 
       {isGenerating(deck.status) ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed p-12 text-center">
-          <Spinner className="size-8" />
-          <div className="space-y-1">
-            <p className="font-medium">Generating your pitch deck…</p>
-            <p className="text-sm text-muted-foreground">
-              This runs in the background via Inngest. The page refreshes every few
-              seconds.
-            </p>
-            {deck.slides.length > 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {deck.slides.length} slide{deck.slides.length === 1 ? "" : "s"} ready
-                so far
-              </p>
-            ) : null}
-          </div>
-          <Progress value={null} className="w-full max-w-md">
-            <ProgressLabel className="sr-only">Generating</ProgressLabel>
-            <ProgressValue />
-          </Progress>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Each slide is built, scored and revised until it reaches 8/10 (up to 3 rounds). This page refreshes every few seconds.
+        </p>
       ) : null}
 
       {deck.status === "FAILED" ? (
@@ -142,40 +98,9 @@ export function DeckViewer({ deckId }: { deckId: string }) {
         </Alert>
       ) : null}
 
-      {deck.status === "COMPLETE" && deck.slides.length > 0 ? (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Slide {currentSlide + 1} of {deck.slides.length}
-          </p>
-          <Carousel setApi={setCarouselApi} className="mx-auto w-full max-w-3xl px-12">
-            <CarouselContent>
-              {deck.slides.map((slide) => (
-                <CarouselItem key={slide.id}>
-                  <article className="overflow-hidden rounded-2xl border bg-card ring-1 ring-foreground/10">
-                    {slide.imageUrl ? (
-                      <img
-                        src={slide.imageUrl}
-                        alt={slide.title}
-                        className="aspect-video w-full object-cover"
-                      />
-                    ) : null}
-                    <div className="space-y-3 p-6">
-                      <h2 className="font-heading text-xl font-semibold">
-                        {slide.title}
-                      </h2>
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                        {slide.content}
-                      </p>
-                    </div>
-                  </article>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-      ) : null}
+      {deck.status === "COMPLETE" && deck.slideHtml.length > 0 ? <DeckPlayerFallback slides={deck.slideHtml} /> : null}
+
+      {deck.slides.length > 0 ? <SlideProgress slides={deck.slides} /> : null}
     </div>
   );
 }
