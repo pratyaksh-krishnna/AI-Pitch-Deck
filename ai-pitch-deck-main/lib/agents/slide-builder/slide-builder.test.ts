@@ -141,6 +141,35 @@ describe("Slide Builder", () => {
   });
 });
 
+describe("Slide Builder prompts never invent facts", () => {
+  const rule = "never invent specific numbers, percentages, surveys, customers, pilots, partners, traction, revenue or market sizes that are not given in the idea";
+  const placeholder = "[X% of surveyed students — add your data]";
+
+  it("tells the planner to use bracketed placeholders instead of invented figures", async () => {
+    const { client, request } = sdkClient({ text: JSON.stringify(plan) });
+    await planDeck("A rent-splitting app for students", client);
+    const system = JSON.stringify(request().body.system);
+    expect(system).toContain(rule);
+    expect(system).toContain(placeholder);
+    expect(system).not.toContain("concrete numbers where plausible");
+  });
+
+  it("tells the Slide Builder the same and to keep placeholders visible", async () => {
+    const { client, request } = sdkClient({ text: JSON.stringify(validDraft) });
+    await buildSlide(ctx, client);
+    const system = JSON.stringify(request().body.system);
+    expect(system).toContain(rule);
+    expect(system).toContain(placeholder);
+    expect(system).toContain("Keep bracketed placeholders visible on the slide as placeholders");
+  });
+
+  it("tells a revision not to invent the proof a reviewer asks for", async () => {
+    const { client, request } = sdkClient({ text: JSON.stringify(validDraft) });
+    await reviseSlide(ctx, validDraft, ["persuasiveness (6/10): Add a verified proof point."], client);
+    expect(request().body.messages[0].content).toContain("do not invent it: use a bracketed placeholder");
+  });
+});
+
 describe("totalInputTokens", () => {
   it("adds uncached, cache-write and cache-read input, treating missing counts as 0", () => {
     expect(totalInputTokens({ input_tokens: 32, cache_creation_input_tokens: 5000, cache_read_input_tokens: 700 })).toBe(5732);

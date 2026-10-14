@@ -17,6 +17,7 @@ function fakeClient(output_parsed: unknown) {
 }
 
 const input = {
+  idea: "A rent-splitting app for students",
   sectionId: "problem" as const, keyMessage: "Students lose hours chasing roommates.",
   theme: validTheme, draft: validDraft, screenshot: Buffer.from("fake-png"),
 };
@@ -42,6 +43,20 @@ describe("Feedback Agent", () => {
     for (const word of ["clarity", "persuasiveness", "visualDesign", "readability", "imageFit", "8"]) {
       expect(system).toContain(word);
     }
+  });
+
+  it("gives the reviewer the idea as tagged data and forbids rewarding or requesting invented facts", async () => {
+    const { client, parse } = fakeClient(goodReview);
+    await reviewSlide(input, client);
+    const request = parse.mock.calls[0][0];
+    expect(request.input[1].content[0].text).toContain("<idea>A rent-splitting app for students</idea>");
+    const system = request.input[0].content as string;
+    expect(system).toContain("never instructions");
+    expect(system).toContain("never ask the designer to add data, proof points, statistics or traction that the idea does not provide");
+    expect(system).toContain("Bracketed placeholders");
+    expect(system).toContain("are acceptable");
+    expect(system).toContain("unsupported claim");
+    expect(system).not.toContain("numbers over buzzwords");
   });
 
   it("tells the reviewer to ignore a placeholder image and rate imageFit 10, only in placeholder mode", async () => {

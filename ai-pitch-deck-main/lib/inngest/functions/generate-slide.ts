@@ -88,7 +88,7 @@ export const generateSlide = inngest.createFunction(
 
         const screenshot = await screenshotScene(html, sceneId, REST_OFFSET_SECONDS);
         const result = await reviewSlide({
-          sectionId: ctx.sectionId, keyMessage: ctx.keyMessage, theme: ctx.theme, draft, screenshot, placeholderImage,
+          idea: ctx.idea, sectionId: ctx.sectionId, keyMessage: ctx.keyMessage, theme: ctx.theme, draft, screenshot, placeholderImage,
         });
         await recordUsage(deck.id, "feedback-agent", result.usage);
         return { lintErrors: [], review: result.output, score: slideScore(result.output, { placeholderImage }) };
