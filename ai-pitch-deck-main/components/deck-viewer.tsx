@@ -83,6 +83,13 @@ export function DeckViewer({ deckId }: { deckId: string }) {
         <DeckStatusBadge status={deck.status} />
       </div>
 
+      {isGenerating(deck.status) && deck.slides.length === 0 ? (
+        <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+          <Spinner className="size-5" />
+          <span>Planning your deck…</span>
+        </div>
+      ) : null}
+
       {isGenerating(deck.status) ? (
         <p className="text-sm text-muted-foreground">
           Each slide is built, scored and revised until it reaches 8/10 (up to 3 rounds). This page refreshes every few seconds.

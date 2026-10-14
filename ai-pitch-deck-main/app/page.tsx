@@ -11,16 +11,18 @@ export default function Home() {
             Turn your idea into a pitch deck
           </h1>
           <p className="text-muted-foreground">
-            Describe your startup or project idea. AI will generate slides with
-            images — powered by OpenAI Agents, Inngest, and ImageKit.
+            Describe your startup or project idea. A Claude Slide Builder designs
+            animated slides, an Image Agent illustrates them, and a Feedback Agent
+            scores each slide and sends it back for revision until it reaches 8/10.
           </p>
         </div>
 
         <CreateDeckForm />
 
         <p className="text-xs text-muted-foreground">
-          Tip: include enough detail (at least 20 characters) so the AI guardrails
-          accept your idea.
+          Tip: describe your idea in 20–2,000 characters and include any real
+          figures you have. The deck only states numbers you give it; anything
+          else appears as a [bracketed placeholder] for you to fill in.
         </p>
       </main>
     </>
