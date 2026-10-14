@@ -1,6 +1,5 @@
 import { NonRetriableError } from "inngest";
 
-import { AgentRefusalError } from "@/lib/agents/agent-errors";
 import { planDeck } from "@/lib/agents/slide-builder";
 import { sectionById, sceneIdFor, type SectionId } from "@/lib/deck/sections";
 import { deckFailureMessage } from "@/lib/deck/slide-context";
@@ -11,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { DeckStatus } from "@/lib/generated/prisma/client";
 import { assembleDeckHtml } from "@/lib/hyperframes/assemble-deck";
 import { inngest } from "@/lib/inngest/client";
+import { nonRetriable } from "@/lib/inngest/non-retriable";
 import { pickBestVersion } from "@/lib/quality/rules";
 import { DeckThemeSchema } from "@/lib/schemas/deck-theme";
 import { SlideDraftSchema } from "@/lib/schemas/slide-draft";
@@ -51,10 +51,7 @@ export const generateDeck = inngest.createFunction(
     });
 
     const slideIds = await step.run("plan-deck", async () => {
-      const plan = await planDeck(deck.idea).catch((error) => {
-        if (error instanceof AgentRefusalError) throw new NonRetriableError(error.message);
-        throw error;
-      });
+      const plan = await nonRetriable(() => planDeck(deck.idea));
       await recordUsage(deckId, "slide-builder", plan.usage);
       return prisma.$transaction(async (tx) => {
         await tx.deck.update({ where: { id: deckId }, data: { title: plan.output.deckTitle, theme: plan.output.theme } });

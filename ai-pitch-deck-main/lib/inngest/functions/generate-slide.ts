@@ -1,6 +1,5 @@
 import { NonRetriableError } from "inngest";
 
-import { AgentRefusalError } from "@/lib/agents/agent-errors";
 import { reviewSlide } from "@/lib/agents/feedback-agent";
 import { generateSlideImage } from "@/lib/agents/image-agent";
 import { buildSlide, reviseSlide } from "@/lib/agents/slide-builder";
@@ -14,18 +13,11 @@ import { assembleDeckHtml, AssemblyError, REST_OFFSET_SECONDS } from "@/lib/hype
 import { lintDeckHtml } from "@/lib/hyperframes/lint";
 import { uploadSlideImage } from "@/lib/imagekit";
 import { inngest } from "@/lib/inngest/client";
+import { nonRetriable } from "@/lib/inngest/non-retriable";
 import { runSlideLoop, type Inspection } from "@/lib/quality/run-slide-loop";
 import { slideScore } from "@/lib/quality/rules";
 import { screenshotScene } from "@/lib/render/screenshot";
 import { StoredOutlineSchema } from "@/lib/schemas/deck-plan";
-
-/** Refusals and malformed output will not succeed on retry. */
-function nonRetriable<T>(fn: () => Promise<T>): Promise<T> {
-  return fn().catch((error) => {
-    if (error instanceof AgentRefusalError) throw new NonRetriableError(error.message);
-    throw error;
-  });
-}
 
 /**
  * One Slide's build → image → inspect → revise loop. Setup (load-slide, outline, context)

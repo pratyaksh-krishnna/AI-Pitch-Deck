@@ -12,5 +12,14 @@ export class AgentOutputError extends Error {
   }
 }
 
+/** The model hit its output limit before finishing; the same prompt would hit it again. */
+export class AgentTruncatedError extends AgentOutputError {
+  constructor(agent: string, what: string) {
+    super(agent, `${what} was too long to finish`);
+    this.message = `${agent} could not finish: ${what} was too long to finish. Try a shorter idea.`;
+    this.name = "AgentTruncatedError";
+  }
+}
+
 export type AgentUsage = { model: string; inputTokens: number; outputTokens: number; imageCount: number };
 export type AgentResult<T> = { output: T; usage: AgentUsage };
