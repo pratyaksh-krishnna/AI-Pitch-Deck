@@ -4,6 +4,7 @@ import { AgentRefusalError } from "@/lib/agents/agent-errors";
 import { planDeck } from "@/lib/agents/slide-builder";
 import { sectionById, sceneIdFor, type SectionId } from "@/lib/deck/sections";
 import { deckFailureMessage } from "@/lib/deck/slide-context";
+import { slideLimitFrom } from "@/lib/deck/slide-limit";
 import { recordUsage } from "@/lib/deck/usage";
 import { failedUpdate, idFromFailureEvent } from "@/lib/deck/workflow-failure";
 import { prisma } from "@/lib/db";
@@ -58,7 +59,9 @@ export const generateDeck = inngest.createFunction(
       return prisma.$transaction(async (tx) => {
         await tx.deck.update({ where: { id: deckId }, data: { title: plan.output.deckTitle, theme: plan.output.theme } });
         await tx.slide.deleteMany({ where: { deckId } });
-        const rows = await Promise.all(plan.output.outline.map((item, i) =>
+        const limit = slideLimitFrom(process.env.DECK_SLIDE_LIMIT);
+        const outline = plan.output.outline.slice(0, limit);
+        const rows = await Promise.all(outline.map((item, i) =>
           tx.slide.create({ data: { deckId, order: i + 1, sectionId: item.sectionId, keyMessage: item.keyMessage } })));
         return rows.map((r) => r.id);
       });

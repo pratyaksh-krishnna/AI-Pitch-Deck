@@ -9,6 +9,7 @@ Domain terms are defined in [CONTEXT.md](./CONTEXT.md); the design is in [docs/s
 ```bash
 pnpm install
 cp .env.example .env   # fill in your keys, including ANTHROPIC_API_KEY (Slide Builder)
+# optional dev cost cap: set DECK_SLIDE_LIMIT=2 in .env to build only the first N sections
 ./node_modules/.bin/prisma migrate dev
 ./node_modules/.bin/prisma generate
 
