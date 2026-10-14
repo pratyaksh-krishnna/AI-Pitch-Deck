@@ -12,7 +12,15 @@ export function sizeForAspect(aspect: ImageAspect): (typeof SIZES)[ImageAspect] 
   return SIZES[aspect];
 }
 
-/** Dev shortcut: a free stock photo of the same shape. Enable with USE_PLACEHOLDER_IMAGES=true. */
+/**
+ * Dev shortcut: USE_PLACEHOLDER_IMAGES=true serves a random free stock photo instead of
+ * calling gpt-image-2. Workflows read this once and pass it down (scoring ignores imageFit).
+ */
+export function placeholderImagesEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return env.USE_PLACEHOLDER_IMAGES === "true";
+}
+
+/** A free stock photo of the same shape. */
 async function placeholder(aspect: ImageAspect): Promise<Buffer> {
   const [w, h] = sizeForAspect(aspect).split("x");
   const response = await fetch(`https://picsum.photos/${w}/${h}`);
@@ -23,7 +31,7 @@ async function placeholder(aspect: ImageAspect): Promise<Buffer> {
 export async function generateSlideImage(
   prompt: string, aspect: ImageAspect, client?: OpenAI,
 ): Promise<{ buffer: Buffer; usage: AgentUsage }> {
-  if (process.env.USE_PLACEHOLDER_IMAGES === "true") {
+  if (placeholderImagesEnabled()) {
     return { buffer: await placeholder(aspect), usage: { model: "placeholder", inputTokens: 0, outputTokens: 0, imageCount: 0 } };
   }
 

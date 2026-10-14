@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { generateSlideImage, IMAGE_MODEL, sizeForAspect } from "@/lib/agents/image-agent";
+import { generateSlideImage, IMAGE_MODEL, placeholderImagesEnabled, sizeForAspect } from "@/lib/agents/image-agent";
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
@@ -10,6 +10,12 @@ describe("Image Agent", () => {
     expect(sizeForAspect("landscape")).toBe("1536x1024");
     expect(sizeForAspect("portrait")).toBe("1024x1536");
     expect(sizeForAspect("square")).toBe("1024x1024");
+  });
+
+  it("reports placeholder mode only for USE_PLACEHOLDER_IMAGES=true", () => {
+    expect(placeholderImagesEnabled({ USE_PLACEHOLDER_IMAGES: "true" })).toBe(true);
+    expect(placeholderImagesEnabled({ USE_PLACEHOLDER_IMAGES: "false" })).toBe(false);
+    expect(placeholderImagesEnabled({})).toBe(false);
   });
 
   it("calls gpt-image-2 at the right size and counts one image", async () => {

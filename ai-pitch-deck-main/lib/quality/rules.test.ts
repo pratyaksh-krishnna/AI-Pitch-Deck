@@ -34,6 +34,13 @@ describe("slideScore", () => {
     expect(clampRating(Number.NaN)).toBe(1);
     expect(slideScore(review({ clarity: 11, imageFit: 0 }))).toBe(1);
   });
+
+  it("ignores imageFit for a placeholder image (ruling R9), and only then", () => {
+    expect(slideScore(review({ imageFit: 1, readability: 8 }), { placeholderImage: true })).toBe(8);
+    expect(slideScore(review({ imageFit: 1, readability: 6 }), { placeholderImage: true })).toBe(6);
+    expect(slideScore(review({ imageFit: 1 }), { placeholderImage: false })).toBe(1);
+    expect(slideScore(review({ imageFit: 1 }))).toBe(1);
+  });
 });
 
 describe("decideNext", () => {
@@ -72,5 +79,14 @@ describe("builderFeedback", () => {
         "clarity (6/10): Cut to one idea.",
         "readability (5/10): Body text is 32px; use 48px.",
       ]);
+  });
+
+  it("omits imageFit feedback for a placeholder image", () => {
+    const low = { ...review({ clarity: 6 }), imageFit: { score: 2, fix: "Use a photo of students." } };
+    expect(builderFeedback({ review: low, lintErrors: [], placeholderImage: true })).toEqual(["clarity (6/10): Cut to one idea."]);
+    expect(builderFeedback({ review: low, lintErrors: [] })).toEqual([
+      "clarity (6/10): Cut to one idea.",
+      "imageFit (2/10): Use a photo of students.",
+    ]);
   });
 });

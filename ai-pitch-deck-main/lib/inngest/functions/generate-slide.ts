@@ -1,7 +1,7 @@
 import { NonRetriableError } from "inngest";
 
 import { reviewSlide } from "@/lib/agents/feedback-agent";
-import { generateSlideImage } from "@/lib/agents/image-agent";
+import { generateSlideImage, placeholderImagesEnabled } from "@/lib/agents/image-agent";
 import { buildSlide, reviseSlide } from "@/lib/agents/slide-builder";
 import { slideVersionUpsertArgs } from "@/lib/deck/persistence";
 import { sectionById, sceneIdFor, type SectionId } from "@/lib/deck/sections";
@@ -47,8 +47,12 @@ export const generateSlide = inngest.createFunction(
     const outline = StoredOutlineSchema.parse(deck.slides.map((s) => ({ sectionId: s.sectionId, keyMessage: s.keyMessage })));
     const ctx = slideContextFor(deck, slide, outline);
     const sceneId = sceneIdFor(slide.order, slide.sectionId as SectionId);
+    // Read once here and passed down, so scoring and feedback agree with the Image Agent (ruling R9).
+    const placeholderImage = placeholderImagesEnabled();
 
     return runSlideLoop({
+      placeholderImage,
+
       build: () => step.run("build", () => nonRetriable(async () => {
         const result = await buildSlide(ctx);
         await recordUsage(deck.id, "slide-builder", result.usage);
@@ -83,9 +87,11 @@ export const generateSlide = inngest.createFunction(
         if (errors.length > 0) return { lintErrors: errors, review: null, score: null };
 
         const screenshot = await screenshotScene(html, sceneId, REST_OFFSET_SECONDS);
-        const result = await reviewSlide({ sectionId: ctx.sectionId, keyMessage: ctx.keyMessage, theme: ctx.theme, draft, screenshot });
+        const result = await reviewSlide({
+          sectionId: ctx.sectionId, keyMessage: ctx.keyMessage, theme: ctx.theme, draft, screenshot, placeholderImage,
+        });
         await recordUsage(deck.id, "feedback-agent", result.usage);
-        return { lintErrors: [], review: result.output, score: slideScore(result.output) };
+        return { lintErrors: [], review: result.output, score: slideScore(result.output, { placeholderImage }) };
       }),
 
       // step.run resolves a void callback to null (JSON), so await it to keep Promise<void>.

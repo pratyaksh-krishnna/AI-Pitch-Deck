@@ -2,7 +2,7 @@ import type OpenAI from "openai";
 import { describe, expect, it, vi } from "vitest";
 
 import { AgentOutputError } from "@/lib/agents/agent-errors";
-import { FEEDBACK_MODEL, reviewSlide } from "@/lib/agents/feedback-agent";
+import { FEEDBACK_MODEL, PLACEHOLDER_IMAGE_NOTE, reviewSlide } from "@/lib/agents/feedback-agent";
 import { validDraft, validTheme } from "@/lib/schemas/fixtures";
 
 const goodReview = {
@@ -42,6 +42,19 @@ describe("Feedback Agent", () => {
     for (const word of ["clarity", "persuasiveness", "visualDesign", "readability", "imageFit", "8"]) {
       expect(system).toContain(word);
     }
+  });
+
+  it("tells the reviewer to ignore a placeholder image and rate imageFit 10, only in placeholder mode", async () => {
+    const placeholder = fakeClient(goodReview);
+    await reviewSlide({ ...input, placeholderImage: true }, placeholder.client);
+    const text = placeholder.parse.mock.calls[0][0].input[1].content[0].text as string;
+    expect(text).toContain(PLACEHOLDER_IMAGE_NOTE);
+    expect(PLACEHOLDER_IMAGE_NOTE).toMatch(/random placeholder/);
+    expect(PLACEHOLDER_IMAGE_NOTE).toMatch(/rate imageFit 10/);
+
+    const real = fakeClient(goodReview);
+    await reviewSlide(input, real.client);
+    expect(real.parse.mock.calls[0][0].input[1].content[0].text).not.toContain("placeholder");
   });
 
   it("throws AgentOutputError when the model returns nothing parseable", async () => {

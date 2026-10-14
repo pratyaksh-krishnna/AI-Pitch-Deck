@@ -22,8 +22,15 @@ For every criterion below ${PASSING_SCORE}, "fix" must be one concrete instructi
 Set regenerateImage true only if a different image is needed to reach ${PASSING_SCORE} on imageFit, and give newImagePrompt (no text in the image). Otherwise newImagePrompt is null.
 Judge what you see in the screenshot; use the HTML only to name elements.`;
 
+/** Development mode: the image is random, so its content must not drive the review (ruling R9). */
+export const PLACEHOLDER_IMAGE_NOTE = `Note: the image on this slide is a random placeholder photo used during development, not the real image. Ignore its content: rate imageFit 10 with an empty fix, set regenerateImage false and newImagePrompt null. Still judge how the image slot fits the layout under visualDesign.`;
+
 export async function reviewSlide(
-  input: { sectionId: SectionId; keyMessage: string; theme: DeckTheme; draft: SlideDraft; screenshot: Buffer },
+  input: {
+    sectionId: SectionId; keyMessage: string; theme: DeckTheme; draft: SlideDraft; screenshot: Buffer;
+    /** The image is a USE_PLACEHOLDER_IMAGES stand-in. */
+    placeholderImage?: boolean;
+  },
   client?: OpenAI,
 ): Promise<AgentResult<SlideReview>> {
   const openai = client ?? getOpenAIClient();
@@ -34,7 +41,7 @@ Deck theme: ${JSON.stringify(input.theme)}
 Headline: ${input.draft.headline}
 Body: ${input.draft.body.join(" | ")}
 HTML:
-${input.draft.markup}`;
+${input.draft.markup}${input.placeholderImage ? `\n\n${PLACEHOLDER_IMAGE_NOTE}` : ""}`;
 
   const response = await openai.responses.parse({
     model: FEEDBACK_MODEL,

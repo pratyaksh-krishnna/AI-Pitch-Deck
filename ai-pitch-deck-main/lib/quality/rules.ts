@@ -1,4 +1,4 @@
-import { RUBRIC_CRITERIA, type SlideReview } from "@/lib/schemas/slide-review";
+import { RUBRIC_CRITERIA, type RubricCriterion, type SlideReview } from "@/lib/schemas/slide-review";
 
 export const PASSING_SCORE = 8;
 export const REVISION_LIMIT = 3;
@@ -10,9 +10,19 @@ export function clampRating(n: number): number {
   return Math.min(10, Math.max(1, Math.round(n)));
 }
 
-/** Slide Score = the weakest Rubric criterion. */
-export function slideScore(review: SlideReview): number {
-  return Math.min(...RUBRIC_CRITERIA.map((c) => clampRating(review[c].score)));
+export type ScoringOptions = {
+  /** The image is a random dev placeholder (USE_PLACEHOLDER_IMAGES), so imageFit says nothing (ruling R9). */
+  placeholderImage?: boolean;
+};
+
+/** The Rubric criteria that count: all five, or all but imageFit for a placeholder image. */
+export function scoredCriteria({ placeholderImage = false }: ScoringOptions = {}): readonly RubricCriterion[] {
+  return placeholderImage ? RUBRIC_CRITERIA.filter((c) => c !== "imageFit") : RUBRIC_CRITERIA;
+}
+
+/** Slide Score = the weakest Rubric criterion that counts. */
+export function slideScore(review: SlideReview, options: ScoringOptions = {}): number {
+  return Math.min(...scoredCriteria(options).map((c) => clampRating(review[c].score)));
 }
 
 export function decideNext(input: { score: number | null; lintErrors: string[]; round: number }): Decision {
@@ -32,10 +42,10 @@ export function pickBestVersion<T extends { round: number; score: number | null 
   return best;
 }
 
-export function builderFeedback(input: { review: SlideReview | null; lintErrors: string[] }): string[] {
+export function builderFeedback(input: { review: SlideReview | null; lintErrors: string[] } & ScoringOptions): string[] {
   const lint = input.lintErrors.map((e) => `Fix HyperFrames lint error — ${e}`);
   const rubric = input.review
-    ? RUBRIC_CRITERIA.filter((c) => clampRating(input.review![c].score) < PASSING_SCORE).map(
+    ? scoredCriteria(input).filter((c) => clampRating(input.review![c].score) < PASSING_SCORE).map(
         (c) => `${c} (${clampRating(input.review![c].score)}/10): ${input.review![c].fix}`,
       )
     : [];

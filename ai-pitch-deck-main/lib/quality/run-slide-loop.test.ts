@@ -50,6 +50,18 @@ describe("runSlideLoop", () => {
     expect(deps.setStatus).toHaveBeenLastCalledWith("FLAGGED", 3);
   });
 
+  it("drops imageFit feedback when the image is a placeholder", async () => {
+    const lowImageFit: SlideReview = { ...reviewWith(6), imageFit: { score: 2, fix: "Use a photo of students." } };
+    const inspection: Inspection = { lintErrors: [], review: lowImageFit, score: 6 };
+    const deps = { ...makeDeps([inspection, passing]), placeholderImage: true };
+    await runSlideLoop(deps);
+    expect(deps.revise).toHaveBeenCalledWith(1, validDraft, ["clarity (6/10): Tighten the headline."]);
+
+    const real = makeDeps([inspection, passing]);
+    await runSlideLoop(real);
+    expect(real.revise).toHaveBeenCalledWith(1, validDraft, ["clarity (6/10): Tighten the headline.", "imageFit (2/10): Use a photo of students."]);
+  });
+
   it("regenerates the image only when feedback asks, using the suggested prompt", async () => {
     const deps = makeDeps([{ lintErrors: [], review: reviewWith(6, true), score: 6 }, passing]);
     await runSlideLoop(deps);

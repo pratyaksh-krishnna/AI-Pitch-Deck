@@ -13,6 +13,8 @@ export type SlideLoopDeps = {
   inspect(round: number, draft: SlideDraft, imageUrl: string): Promise<Inspection>;
   saveVersion(v: { round: number; draft: SlideDraft; imageUrl: string } & Inspection): Promise<void>;
   setStatus(status: SlideLoopStatus, round: number, errorMessage?: string): Promise<void>;
+  /** The Image Agent is serving random placeholders, so imageFit feedback is dropped (ruling R9). */
+  placeholderImage?: boolean;
 };
 
 export type SlideLoopResult = { outcome: "PASSED" | "FLAGGED"; rounds: number };
@@ -42,7 +44,7 @@ export async function runSlideLoop(deps: SlideLoopDeps): Promise<SlideLoopResult
       round += 1;
       await deps.setStatus("REVISING", round);
       const previous = draft;
-      draft = await deps.revise(round, previous, builderFeedback(inspection));
+      draft = await deps.revise(round, previous, builderFeedback({ ...inspection, placeholderImage: deps.placeholderImage }));
 
       const wantsNewImage = inspection.review?.regenerateImage === true || draft.imageAspect !== previous.imageAspect;
       if (wantsNewImage) {
