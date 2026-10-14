@@ -4,6 +4,11 @@ import type { SlideDraft } from "@/lib/schemas/slide-draft";
 export const SLIDE_SECONDS = 6;
 /** The slideshow rests at a scene's midpoint; screenshots use the same frame. */
 export const REST_OFFSET_SECONDS = 3;
+/**
+ * What a one-slide player plays (ruling R8): from 0 so the entrance animation runs, ending
+ * at the rest frame, where the player holds the last frame before range-end.
+ */
+export const SLIDE_PLAYER_RANGE = { start: 0, end: REST_OFFSET_SECONDS } as const;
 /** The only script the assembled document loads; the screenshot allowlist depends on it. */
 export const GSAP_SRC = "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js";
 

@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { REST_OFFSET_SECONDS } from "@/lib/hyperframes/assemble-deck";
+import { SLIDE_PLAYER_RANGE } from "@/lib/hyperframes/assemble-deck";
 
 /**
  * Plays a Deck one Slide at a time. Each Slide is its own one-slide HyperFrames
  * document, shown in an opaque-origin sandbox so AI-written HTML/JS cannot reach
- * this page, and parked on the Slide's rest frame.
+ * this page. Each Slide plays its entrance from 0 and parks on its rest frame
+ * (range-end holds the last frame before REST_OFFSET_SECONDS).
  *
  * Fallback for <hyperframes-slideshow>: without the HyperFrames engine, the bare
  * player resolves only the first top-level scene of a multi-scene document, so
@@ -28,7 +29,8 @@ export function DeckPlayerFallback({ slides }: { slides: string[] }) {
         key={index}
         sandbox-origin="opaque"
         srcdoc={slides[index]}
-        range-start={String(REST_OFFSET_SECONDS)}
+        range-start={String(SLIDE_PLAYER_RANGE.start)}
+        range-end={String(SLIDE_PLAYER_RANGE.end)}
         autoplay
         style={{ width: "100%", aspectRatio: "16 / 9", display: "block" }}
       />

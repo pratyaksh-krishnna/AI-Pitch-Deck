@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { AssemblyError, assembleDeckHtml, sceneStart, SLIDE_SECONDS } from "@/lib/hyperframes/assemble-deck";
+import {
+  AssemblyError, assembleDeckHtml, REST_OFFSET_SECONDS, sceneStart, SLIDE_PLAYER_RANGE, SLIDE_SECONDS,
+} from "@/lib/hyperframes/assemble-deck";
 import { lintDeckHtml } from "@/lib/hyperframes/lint";
 import { validDraft, validTheme } from "@/lib/schemas/fixtures";
 import type { SlideDraft } from "@/lib/schemas/slide-draft";
@@ -60,5 +62,12 @@ describe("assembleDeckHtml", () => {
   it("produces a document HyperFrames lint accepts with zero errors", async () => {
     const result = await lintDeckHtml(assembleDeckHtml(validTheme, [scene(1), scene(2)]));
     expect(result.errors).toEqual([]);
+  });
+});
+
+describe("SLIDE_PLAYER_RANGE", () => {
+  it("plays each slide's entrance from 0 and parks on the rest frame (ruling R8)", () => {
+    expect(SLIDE_PLAYER_RANGE).toEqual({ start: 0, end: REST_OFFSET_SECONDS });
+    expect(SLIDE_PLAYER_RANGE.end).toBeLessThan(SLIDE_SECONDS);
   });
 });

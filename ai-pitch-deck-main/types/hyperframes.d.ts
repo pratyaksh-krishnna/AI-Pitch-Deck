@@ -8,6 +8,7 @@ declare module "react" {
         "sandbox-origin"?: "opaque";
         srcdoc?: string;
         "range-start"?: string;
+        "range-end"?: string;
         autoplay?: boolean;
       };
     }
