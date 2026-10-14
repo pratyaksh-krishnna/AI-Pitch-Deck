@@ -17,7 +17,7 @@ import { inngest } from "@/lib/inngest/client";
 import { runSlideLoop, type Inspection } from "@/lib/quality/run-slide-loop";
 import { slideScore } from "@/lib/quality/rules";
 import { screenshotScene } from "@/lib/render/screenshot";
-import { DeckPlanSchema } from "@/lib/schemas/deck-plan";
+import { StoredOutlineSchema } from "@/lib/schemas/deck-plan";
 
 /** Refusals and malformed output will not succeed on retry. */
 function nonRetriable<T>(fn: () => Promise<T>): Promise<T> {
@@ -52,7 +52,7 @@ export const generateSlide = inngest.createFunction(
       return { slide: record, deck: record.deck };
     });
 
-    const outline = DeckPlanSchema.shape.outline.parse(deck.slides.map((s) => ({ sectionId: s.sectionId, keyMessage: s.keyMessage })));
+    const outline = StoredOutlineSchema.parse(deck.slides.map((s) => ({ sectionId: s.sectionId, keyMessage: s.keyMessage })));
     const ctx = slideContextFor(deck, slide, outline);
     const sceneId = sceneIdFor(slide.order, slide.sectionId as SectionId);
 

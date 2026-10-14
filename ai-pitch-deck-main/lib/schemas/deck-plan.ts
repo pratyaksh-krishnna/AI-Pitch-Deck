@@ -14,4 +14,13 @@ export const DeckPlanSchema = z.object({
     }),
 });
 
+/** Outline as stored on Slide rows: a non-empty, in-order prefix of the sections (DECK_SLIDE_LIMIT may truncate it). */
+export const StoredOutlineSchema = z
+  .array(z.object({ sectionId: z.enum(SECTION_IDS), keyMessage: z.string().min(10).max(300) }))
+  .min(1)
+  .max(SECTION_IDS.length)
+  .refine((items) => items.every((item, i) => item.sectionId === SECTION_IDS[i]), {
+    message: "Outline must be a prefix of the sections, in deck order",
+  });
+
 export type DeckPlan = z.infer<typeof DeckPlanSchema>;
