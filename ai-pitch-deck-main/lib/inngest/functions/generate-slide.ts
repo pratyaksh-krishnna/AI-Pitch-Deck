@@ -8,6 +8,7 @@ import { slideVersionUpsertArgs } from "@/lib/deck/persistence";
 import { sectionById, sceneIdFor, type SectionId } from "@/lib/deck/sections";
 import { slideContextFor } from "@/lib/deck/slide-context";
 import { recordUsage } from "@/lib/deck/usage";
+import { failedUpdate, idFromFailureEvent } from "@/lib/deck/workflow-failure";
 import { prisma } from "@/lib/db";
 import { assembleDeckHtml, AssemblyError, REST_OFFSET_SECONDS } from "@/lib/hyperframes/assemble-deck";
 import { lintDeckHtml } from "@/lib/hyperframes/lint";
@@ -26,8 +27,22 @@ function nonRetriable<T>(fn: () => Promise<T>): Promise<T> {
   });
 }
 
+/**
+ * One Slide's build → image → inspect → revise loop. Setup (load-slide, outline, context)
+ * runs outside runSlideLoop's own FAILED handling, so onFailure covers every failure.
+ */
 export const generateSlide = inngest.createFunction(
-  { id: "generate-slide", triggers: [{ event: "slide/generate" }] },
+  {
+    id: "generate-slide",
+    triggers: [{ event: "slide/generate" }],
+    onFailure: async ({ event, error, step }) => {
+      const slideId = idFromFailureEvent(event, "slideId");
+      if (!slideId) return;
+      await step.run("mark-slide-failed", async () => {
+        await prisma.slide.updateMany({ where: { id: slideId }, data: failedUpdate(error, "Could not generate this slide.") });
+      });
+    },
+  },
   async ({ event, step }) => {
     const { slideId } = event.data;
 
@@ -60,6 +75,10 @@ export const generateSlide = inngest.createFunction(
         return uploadSlideImage(buffer, `deck-${deck.id}-slide-${slide.order}-r${round}.png`);
       }),
 
+      // Renders untrusted model output (markup, CSS, animation JS) in server-side Chromium.
+      // Safety relies on lib/render/screenshot.ts: per-call context, network allowlist
+      // (GSAP CDN + ik.imagekit.io only) and a hard deadline. No other server-side path
+      // fetches a URL derived from model output (images come from our own upload).
       inspect: (round, draft, imageUrl) => step.run(`inspect-${round}`, async (): Promise<Inspection> => {
         let html: string;
         try {
