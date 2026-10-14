@@ -86,10 +86,9 @@ export const generateDeck = inngest.createFunction(
           imageUrl: best.imageUrl,
         };
       });
-      await prisma.deck.update({
-        where: { id: deckId },
-        data: { deckHtml: assembleDeckHtml(theme, scenes), status: DeckStatus.COMPLETE },
-      });
+      // An AssemblyError is deterministic (same drafts, same error), so it is not retried.
+      const deckHtml = await nonRetriable(async () => assembleDeckHtml(theme, scenes));
+      await prisma.deck.update({ where: { id: deckId }, data: { deckHtml, status: DeckStatus.COMPLETE } });
     });
 
     return { deckId, slides: slideIds.length };

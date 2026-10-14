@@ -2,6 +2,7 @@ import { NonRetriableError } from "inngest";
 import { describe, expect, it } from "vitest";
 
 import { AgentOutputError, AgentRefusalError, AgentTruncatedError } from "@/lib/agents/agent-errors";
+import { AssemblyError } from "@/lib/hyperframes/assemble-deck";
 import { nonRetriable } from "@/lib/inngest/non-retriable";
 
 describe("nonRetriable", () => {
@@ -19,6 +20,13 @@ describe("nonRetriable", () => {
     const error = await nonRetriable(async () => { throw new AgentTruncatedError("Slide Builder", "the slide"); }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(NonRetriableError);
     expect((error as Error).message).toContain("the slide was too long to finish");
+  });
+
+  it("stops Inngest retrying a deterministic deck assembly error", async () => {
+    const error = await nonRetriable(async () => { throw new AssemblyError("s1-title", "markup must not contain <script>"); })
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(NonRetriableError);
+    expect((error as Error).message).toBe("Slide s1-title: markup must not contain <script>");
   });
 
   it("lets schema misses and other errors retry", async () => {

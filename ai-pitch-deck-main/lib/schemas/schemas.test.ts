@@ -21,7 +21,7 @@ describe("schemas", () => {
     const rating = { score: 8, fix: "" };
     const review = Object.fromEntries(RUBRIC_CRITERIA.map((c) => [c, rating]));
     expect(SlideReviewSchema.parse({ ...review, regenerateImage: false, newImagePrompt: null })).toBeTruthy();
-    const { imageFit: _omit, ...missing } = review;
+    const missing = Object.fromEntries(RUBRIC_CRITERIA.filter((c) => c !== "imageFit").map((c) => [c, rating]));
     expect(() => SlideReviewSchema.parse({ ...missing, regenerateImage: false, newImagePrompt: null })).toThrow();
   });
 
